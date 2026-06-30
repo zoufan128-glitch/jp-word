@@ -41,12 +41,20 @@
       box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
       border-color: #3b82f6;
     }
+    .accent-text {
+      color: #e11d48;
+      font-size: 13px;
+    }
+    .verb-tag {
+      font-size: 12px;
+      color: #64748b;
+    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-24">
 <div class="max-w-xl mx-auto p-4">
   <header class="text-center my-8">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2">日语学习助手（樱花版）</h1>
+    <h1 class="text-3xl font-bold text-slate-800 mb-2">日语单词学习助手</h1>
     <p class="text-slate-500 text-base mt-1 bg-blue-50 inline-block px-4 py-1 rounded-full">点击单词听录音</p>
   </header>
   <!-- 顶部标签切换栏（3个标签：背诵/默写/编辑） -->
@@ -74,7 +82,7 @@
     <audio id="audio-player">
   </div>
 
-  <!-- ========== 单词默写页面（修复版） ========== -->
+  <!-- ========== 单词默写页面（仅考日文/假名，动词信息不参与） ========== -->
   <div id="page-dictation" class="hidden">
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
       <label class="text-slate-700 font-medium">选择默写课文</label>
@@ -116,7 +124,7 @@
     </div>
   </div>
 
-  <!-- ========== 教师编辑页面 ========== -->
+  <!-- ========== 教师编辑页面（新增声调、动词类型、自他输入框） ========== -->
   <div id="page-editor" class="hidden">
     <!-- 1. 新增课文 -->
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
@@ -124,7 +132,7 @@
       <input type="text" id="new-lesson-name" placeholder="例：第1课 日常あいさつ" class="w-full p-3 border rounded-lg mb-2">
       <button onclick="addNewLesson()" class="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 rounded-lg btn-hover shadow-sm">创建课文</button>
     </div>
-    <!-- 2. 添加单词表单 -->
+    <!-- 2. 添加单词【新增动词属性字段】 -->
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
       <h3 class="font-bold text-lg mb-2">添加单词（音频提前上传到 audio/ 文件夹）</h3>
       <select id="target-lesson-edit" class="w-full p-3 border rounded-lg mb-2">
@@ -133,6 +141,13 @@
       <input type="text" id="jp-word" placeholder="日文单词" class="w-full p-3 border rounded-lg mb-2">
       <input type="text" id="kana-word" placeholder="假名" class="w-full p-3 border rounded-lg mb-2">
       <input type="text" id="mean-word" placeholder="中文释义" class="w-full p-3 border rounded-lg mb-2">
+      <!-- 新增字段：声调、动词种类、自动词、他动词 -->
+      <input type="text" id="accent-word" placeholder="声调 例：0/1/2（非动词留空）" class="w-full p-3 border rounded-lg mb-2">
+      <input type="text" id="verb-type" placeholder="动词类别：五段/一段/カ变/サ变（名词留空）" class="w-full p-3 border rounded-lg mb-2">
+      <div class="flex gap-2">
+        <input type="text" id="jido-word" placeholder="自动词标记 例：自" class="w-1/2 p-3 border rounded-lg mb-2">
+        <input type="text" id="tado-word" placeholder="他动词标记 例：他" class="w-1/2 p-3 border rounded-lg mb-2">
+      </div>
       <input type="text" id="audio-path" placeholder="audio/les1_01.mp3" value="audio/" class="w-full p-3 border rounded-lg mb-2">
       <p class="text-xs text-gray-400 mb-2">音频命名规范：les课文号_序号.mp3，放入仓库audio文件夹</p>
       <button onclick="addWordToLesson()" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg btn-hover shadow-sm">保存单词</button>
@@ -206,7 +221,7 @@
     localStorage.setItem("jpWordEditorCache", JSON.stringify(appData));
   }
 
-  // 读取线上仓库的 word-list.json（学生端使用）
+  // 读取线上仓库的 word-list.json（兼容旧无动词字段数据）
   async function loadOnlineData() {
     try {
       const res = await fetch("word-list.json");
@@ -262,31 +277,43 @@
     alert("课文创建成功！");
   }
 
-  // 添加单词到指定课文
+  // 添加单词【包含声调、动词、自他全部字段】
   function addWordToLesson() {
     const lesIdx = document.getElementById("target-lesson-edit").value;
     const jp = document.getElementById("jp-word").value.trim();
     const kana = document.getElementById("kana-word").value.trim();
     const mean = document.getElementById("mean-word").value.trim();
+    const accent = document.getElementById("accent-word").value.trim();
+    const verbType = document.getElementById("verb-type").value.trim();
+    const jido = document.getElementById("jido-word").value.trim();
+    const tado = document.getElementById("tado-word").value.trim();
     const audioPath = document.getElementById("audio-path").value.trim();
+
     if (lesIdx === "" || !jp || !kana || !mean || !audioPath) {
-      return alert("请完整填写单词信息与音频路径");
+      return alert("日文/假名/释义/音频路径为必填项，动词相关可留空");
     }
     appData.lessons[lesIdx].words.push({
-      jp, kana, mean, audioPath
+      jp,
+      kana,
+      mean,
+      accent,
+      verbType,
+      jido,
+      tado,
+      audioPath
     });
     saveCache();
-    // 清空输入框
-    document.getElementById("jp-word").value = "";
-    document.getElementById("kana-word").value = "";
-    document.getElementById("mean-word").value = "";
+    // 清空全部输入框
+    ["jp-word","kana-word","mean-word","accent-word","verb-type","jido-word","tado-word"].forEach(id=>{
+      document.getElementById(id).value = "";
+    })
     document.getElementById("audio-path").value = "audio/";
     renderAllLessonSelect();
     renderManageWord();
     alert("单词添加完成！");
   }
 
-  // 编辑区渲染单词列表（支持删除）
+  // 编辑区单词预览（展示动词、声调信息）
   function renderManageWord() {
     const box = document.getElementById("manage-word-box");
     const selIdx = document.getElementById("manage-lesson").value;
@@ -300,8 +327,14 @@
     wordList.forEach((word, wIdx) => {
       const item = document.createElement("div");
       item.className = "flex justify-between items-center border p-2 rounded";
+      const tagStr = [];
+      if(word.accent) tagStr.push(`声调${word.accent}`);
+      if(word.verbType) tagStr.push(word.verbType);
+      if(word.jido) tagStr.push(word.jido);
+      if(word.tado) tagStr.push(word.tado);
+      const tagText = tagStr.length ? `｜${tagStr.join(" ")}` : "";
       item.innerHTML = `
-        <div class="text-sm">${word.jp}【${word.kana}】${word.mean}</div>
+        <div class="text-sm">${word.jp}【${word.kana}】${word.mean}${tagText}</div>
         <button onclick="deleteWord(${selIdx},${wIdx})" class="text-red-500 text-sm">删除</button>
       `;
       box.appendChild(item);
@@ -316,17 +349,17 @@
     renderManageWord();
   }
 
-  // 导出 word-list.json 文件
+  // 导出 word-list.json
   function exportJsonFile() {
     const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "word-list.json";
     a.click();
-    alert("导出成功！将下载的json上传覆盖仓库原文件即可更新全站单词");
+    alert("导出成功！上传覆盖仓库原文件即可更新全站单词");
   }
 
-  // 清空本地浏览器缓存
+  // 清空本地编辑缓存
   function clearLocalCache() {
     if (!confirm("确定清空本地所有编辑缓存？不会影响线上仓库文件")) return;
     appData = { lessons: [] };
@@ -336,7 +369,7 @@
     alert("本地缓存已清空");
   }
 
-  // 学生端渲染单词卡片
+  // 学生端单词卡片【新增声调、动词标签展示】
   function renderWordList() {
     const container = document.getElementById("word-list");
     const selIdx = document.getElementById("lesson-select").value;
@@ -354,10 +387,20 @@
     words.forEach(word => {
       const card = document.createElement("div");
       card.className = "word-card bg-white p-4 rounded-lg shadow-sm active:bg-blue-50 cursor-pointer";
+      // 拼接动词相关标签
+      let tagHtml = "";
+      const tagArr = [];
+      if(word.accent) tagArr.push(`声调${word.accent}`);
+      if(word.verbType) tagArr.push(word.verbType);
+      if(word.jido) tagArr.push(word.jido);
+      if(word.tado) tagArr.push(word.tado);
+      if(tagArr.length > 0) tagHtml = `<div class="verb-tag mt-1">${tagArr.join("｜")}</div>`;
       card.innerHTML = `
+        ${word.accent ? `<div class="accent-text">声调：${word.accent}</div>` : ""}
         <div class="text-lg font-bold text-slate-900">${word.jp}</div>
         <div class="text-sm text-sky-600">${word.kana}</div>
         <div class="text-sm text-slate-500 mt-1">${word.mean}</div>
+        ${tagHtml}
       `;
       card.onclick = () => {
         audioPlayer.src = word.audioPath;
@@ -376,7 +419,6 @@
     if (selIdx === "" || !window.onlineWordData) return alert("请等待单词加载完成");
     const words = window.onlineWordData.lessons[selIdx].words;
     try {
-      // 先播放第一个获取用户交互权限
       audioPlayer.src = words[0].audioPath;
       await audioPlayer.play();
       for (let i = 1; i < words.length; i++) {
@@ -389,8 +431,7 @@
     }
   }
 
-  // ========== 默写功能修复版逻辑 ==========
-  // 初始化默写
+  // ========== 默写逻辑（完全不使用声调/动词字段，仅jp/kana判分） ==========
   function initDictation() {
     const selIdx = document.getElementById("dictation-lesson-select").value;
     if (selIdx === "" || !window.onlineWordData) return alert("请选择课文");
@@ -411,21 +452,20 @@
     startDictationTimer();
   }
 
-  // 展示题目（固定显示中文释义）
+  // 固定只出中文释义，不展示动词信息
   function showDictationQuestion() {
     if (dictationData.currentIndex >= dictationData.shuffledWords.length) {
       finishDictation();
       return;
     }
     const currentWord = dictationData.shuffledWords[dictationData.currentIndex];
-    // 固定展示中文释义，要求输入日文或假名
     const questionText = `请写出释义「${currentWord.mean}」对应的日文单词或假名`;
     document.getElementById("dictation-question").textContent = questionText;
     document.getElementById("dictation-answer").value = "";
     document.getElementById("answer-feedback").classList.add("hidden");
   }
 
-  // 校验答案（输入日文或假名均算正确）
+  // 判分只对比jp、假名，声调动词完全不参与
   function checkAnswer() {
     const answer = document.getElementById("dictation-answer").value.trim();
     const currentWord = dictationData.shuffledWords[dictationData.currentIndex];
@@ -434,7 +474,6 @@
     if (!answer) return alert("请输入答案");
 
     feedback.classList.remove("hidden");
-    // 判定逻辑：输入等于日文单词 或 等于假名，均算正确
     const isCorrect = answer === currentWord.jp || answer === currentWord.kana;
     
     if (isCorrect) {
@@ -443,8 +482,7 @@
     } else {
       feedback.textContent = `❌ 错误，正确答案：${currentWord.jp}（${currentWord.kana}）`;
       feedback.className = "mt-3 text-center text-red-600";
-      // 去重添加错题
-      if (!dictationData.wrongWords.some(w => w.jp === currentWord.jp && w.kana === currentWord.kana)) {
+      if (!dictationData.wrongWords.some(w => w.jp === currentWord.jp)) {
         dictationData.wrongWords.push(currentWord);
       }
     }
@@ -456,26 +494,23 @@
     }, 1500);
   }
 
-  // 更新进度文字
   function updateDictationProgress() {
     const total = dictationData.shuffledWords.length;
     const curr = dictationData.currentIndex;
     document.getElementById("dictation-progress").textContent = `进度：${curr}/${total}`;
   }
 
-  // 计时
   function startDictationTimer() {
     if (dictationData.timer) clearInterval(dictationData.timer);
     dictationData.startTime = Date.now() - dictationData.elapsedTime;
     dictationData.timer = setInterval(() => {
       dictationData.elapsedTime = Date.now() - dictationData.startTime;
       const m = Math.floor(dictationData.elapsedTime / 60000).toString().padStart(2, "0");
-      const s = Math.floor((dictationData.elapsedTime % 60000) / 1000).toString().padStart(2, "0");
+      const s = Math.floor((dictationData.elapsedTime % 60000) / 1000).toString().padStart(2, "");
       document.getElementById("dictation-timer").textContent = `计时：${m}:${s}`;
     }, 1000);
   }
 
-  // 默写结束，展示成绩
   function finishDictation() {
     clearInterval(dictationData.timer);
     const total = dictationData.shuffledWords.length;
@@ -500,7 +535,6 @@
     document.getElementById("dictation-result").classList.remove("hidden");
   }
 
-  // 重置默写全部状态
   function resetDictation() {
     clearInterval(dictationData.timer);
     dictationData = {
@@ -520,7 +554,6 @@
     document.getElementById("dictation-lesson-select").value = "";
   }
 
-  // 仅重练错题
   function retryWrongWords() {
     if (dictationData.wrongWords.length === 0) return alert("暂无错题");
     dictationData.shuffledWords = [...dictationData.wrongWords].sort(() => Math.random() - 0.5);
@@ -531,15 +564,13 @@
     document.getElementById("dictation-area").classList.remove("hidden");
     updateDictationProgress();
     showDictationQuestion();
-    startDictationTimer();
   }
 
-  // 默写输入框回车提交
+  // 回车提交答案
   document.getElementById("dictation-answer").addEventListener("keydown", (e) => {
     if (e.key === "Enter") checkAnswer();
   });
 
-  // 页面初始化
   window.onload = function () {
     switchTab("study");
   }
