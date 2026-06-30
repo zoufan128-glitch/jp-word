@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>日语单词音频库-全班共享排行榜(GitHub云端)</title>
+  <title>单词学习助手</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .word-card {
@@ -41,39 +41,32 @@
       box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
       border-color: #3b82f6;
     }
-    .rank-1 { background: linear-gradient(135deg,#ffd700,#ffb347); color:#333; }
-    .rank-2 { background: linear-gradient(135deg,#c0c0c0,#a8a8a8); color:#222; }
-    .rank-3 { background: linear-gradient(135deg,#cd7f32,#b87333); color:#fff; }
-    .rank-normal { background:#e5e7eb; color:#333; }
-    .teacher-block {
-      border: 1px dashed #ef4444;
-      background: #fff5f5;
-    }
-    .copy-area {
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-24">
 <div class="max-w-xl mx-auto p-4">
   <header class="text-center my-8">
     <h1 class="text-3xl font-bold text-slate-800 mb-2">日语单词发音合集</h1>
-    <p class="text-slate-500 text-base mt-1 bg-blue-50 inline-block px-4 py-1 rounded-full">云端共享排行榜 · GitHub全班互通</p>
+    <p class="text-slate-500 text-base mt-1 bg-blue-50 inline-block px-4 py-1 rounded-full">自制录音 · 教师可在线编辑</p>
   </header>
+  <!-- 顶部标签切换栏（3个标签：背诵/默写/编辑） -->
   <div class="flex rounded-xl overflow-hidden mb-8 border border-gray-200 shadow-sm">
     <button onclick="switchTab('study')" id="tab-study" class="flex-1 py-4 font-medium tab-active">学生背诵</button>
     <button onclick="switchTab('dictation')" id="tab-dictation" class="flex-1 py-4 font-medium bg-white text-slate-600">单词默写</button>
-    <button onclick="switchTab('rank')" id="tab-rank" class="flex-1 py-4 font-medium bg-white text-slate-600">全班排行榜</button>
     <button onclick="switchTab('editor')" id="tab-editor" class="flex-1 py-4 font-medium bg-white text-slate-600">教师编辑</button>
   </div>
 
-  <!-- 背诵页面 -->
+  <!-- ========== 学生背诵页面 ========== -->
   <div id="page-study">
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
       <label class="text-slate-700 font-medium">选择课文</label>
       <select id="lesson-select" class="w-full mt-2 p-3 border rounded-lg" onchange="renderWordList()">
-        <option value="">加载中...</option>
+        <option value="">
+          <div class="flex items-center justify-center">
+            <span class="animate-pulse">加载中...</span>
+            <span class="ml-2">🔄</span>
+          </div>
+        </option>
       </select>
       <button onclick="playAllWords()" class="w-full mt-3 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg btn-hover shadow-sm">批量朗读本课单词</button>
     </div>
@@ -81,429 +74,471 @@
     <audio id="audio-player">
   </div>
 
-  <!-- 默写页面 -->
+  <!-- ========== 单词默写页面（新增） ========== -->
   <div id="page-dictation" class="hidden">
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
-      <label class="text-slate-700 font-medium">你的姓名</label>
-      <input id="stu-name" placeholder="输入姓名" class="w-full mt-2 p-3 border rounded-lg mb-3">
       <label class="text-slate-700 font-medium">选择默写课文</label>
-      <select id="dictation-lesson-select" class="w-full mt-2 p-3 border rounded-lg">
+      <select id="dictation-lesson-select" class="w-full mt-2 p-3 border rounded-lg" onchange="initDictation()">
         <option value="">选择课文</option>
       </select>
       <div class="flex gap-2 mt-3">
         <button onclick="initDictation()" class="flex-1 bg-purple-500 text-white py-3 rounded-lg btn-hover shadow-sm">开始默写</button>
         <button onclick="resetDictation()" class="flex-1 bg-gray-200 text-slate-700 py-3 rounded-lg btn-hover shadow-sm">重置</button>
       </div>
-      <div class="mt-3 flex justify-between text-sm text-slate-500">
+      <div class="mt-3 flex items-center justify-between text-sm text-slate-500">
         <span id="dictation-progress">进度：0/0</span>
         <span id="dictation-timer">计时：00:00</span>
       </div>
     </div>
+
+    <!-- 默写答题区 -->
     <div id="dictation-area" class="bg-white rounded-lg p-6 mb-4 shadow-sm card hidden">
       <div class="text-lg font-medium mb-4" id="dictation-question"></div>
-      <input type="text" id="dictation-answer" placeholder="输入日文单词" class="w-full p-3 border rounded-lg mb-3">
-      <button onclick="checkAnswer()" class="w-full bg-blue-500 text-white py-3 rounded-lg btn-hover shadow-sm">提交答案</button>
+      <input type="text" id="dictation-answer" placeholder="请输入日文单词" class="w-full p-3 border rounded-lg mb-3">
+      <button onclick="checkAnswer()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg btn-hover shadow-sm">提交答案</button>
       <div id="answer-feedback" class="mt-3 text-center hidden"></div>
     </div>
+
+    <!-- 默写结果区 -->
     <div id="dictation-result" class="bg-white rounded-lg p-4 mb-4 shadow-sm card hidden">
-      <h3 class="font-bold text-lg mb-2 text-center">本次默写成绩</h3>
+      <h3 class="font-bold text-lg mb-2 text-center">默写结果</h3>
       <div class="text-center mb-3">
         <span id="dictation-score" class="text-2xl font-bold text-green-600">0</span>
-        <span>/<span id="dictation-total">0</span></span>
-        <p class="text-sm mt-1">正确率：<span id="dictation-rate">0%</span></p>
-        <p class="text-sm">用时：<span id="dict-use-time">00:00</span></p>
+        <span class="text-slate-500">/</span>
+        <span id="dictation-total" class="text-slate-500">0</span>
+        <p class="text-sm text-slate-500 mt-1">正确率：<span id="dictation-rate">0%</span></p>
       </div>
       <div class="mt-3">
-        <h4 class="font-medium text-slate-700 mb-2">错题</h4>
+        <h4 class="font-medium text-slate-700 mb-2">错误单词：</h4>
         <div id="wrong-words-list" class="text-sm space-y-1"></div>
       </div>
-      <div class="flex gap-2 mt-4">
-        <button onclick="copyScoreForTeacher()" class="flex-1 bg-green-500 text-white py-2 rounded-lg btn-hover">保存上榜(复制提交文本)</button>
-        <button onclick="skipSaveScore()" class="flex-1 bg-gray-400 text-white py-2 rounded-lg btn-hover">不保存上榜</button>
-      </div>
-      <button onclick="retryWrongWords()" class="w-full mt-3 bg-orange-500 text-white py-3 rounded-lg btn-hover shadow-sm">重练错题</button>
-      <!-- 复制弹窗 -->
-      <div id="copy-modal" class="hidden mt-4 p-3 bg-green-50 rounded border border-green-300">
-        <p class="text-sm mb-2">复制下方全部文字发给老师更新榜单：</p>
-        <textarea readonly id="copy-text" class="w-full h-20 p-2 text-sm copy-area"></textarea>
-        <button onclick="copyTextToClip()" class="w-full mt-2 bg-green-600 text-white py-2 rounded">一键复制</button>
-      </div>
+      <button onclick="retryWrongWords()" class="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg btn-hover shadow-sm">重练错题</button>
     </div>
   </div>
 
-  <!-- 全班共享排行榜 -->
-  <div id="page-rank" class="hidden">
-    <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
-      <div class="flex gap-2 mb-3">
-        <button onclick="renderRank('rate')" class="flex-1 bg-blue-500 text-white py-2 rounded btn-hover">按正确率排序</button>
-        <button onclick="renderRank('time')" class="flex-1 bg-slate-700 text-white py-2 rounded btn-hover">按速度排序</button>
-      </div>
-      <p class="text-xs text-slate-400 text-center">榜单来自GitHub云端，全班所有设备实时同步</p>
-    </div>
-    <div id="rank-list-box" class="space-y-3"></div>
-  </div>
-
-  <!-- 教师编辑页：单词+榜单合并工具 -->
+  <!-- ========== 教师编辑页面 ========== -->
   <div id="page-editor" class="hidden">
+    <!-- 1. 新增课文 -->
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
       <h3 class="font-bold text-lg mb-2">新增课文单元</h3>
-      <input id="new-lesson-name" placeholder="例：樱花2第一课" class="w-full p-3 border rounded-lg mb-2">
-      <button onclick="addNewLesson()" class="w-full bg-sky-500 text-white py-3 rounded-lg btn-hover shadow-sm">创建课文</button>
+      <input type="text" id="new-lesson-name" placeholder="例：第1课 日常あいさつ" class="w-full p-3 border rounded-lg mb-2">
+      <button onclick="addNewLesson()" class="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 rounded-lg btn-hover shadow-sm">创建课文</button>
     </div>
+    <!-- 2. 添加单词表单 -->
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
-      <h3 class="font-bold text-lg mb-2">添加单词</h3>
+      <h3 class="font-bold text-lg mb-2">添加单词（音频提前上传到 audio/ 文件夹）</h3>
       <select id="target-lesson-edit" class="w-full p-3 border rounded-lg mb-2">
-        <option value="">先创建课文</option>
+        <option value="">请先创建课文</option>
       </select>
-      <input id="jp-word" placeholder="日文" class="w-full p-3 border rounded-lg mb-2">
-      <input id="kana-word" placeholder="假名" class="w-full p-3 border rounded-lg mb-2">
-      <input id="mean-word" placeholder="释义" class="w-full p-3 border rounded-lg mb-2">
-      <input id="audio-path" value="audio/" placeholder="audio/Les_01.m4a" class="w-full p-3 border rounded-lg mb-2">
-      <p class="text-xs text-gray-400 mb-2">音频放audio文件夹</p>
-      <button onclick="addWordToLesson()" class="w-full bg-orange-500 text-white py-3 rounded-lg btn-hover shadow-sm">保存单词</button>
+      <input type="text" id="jp-word" placeholder="日文单词" class="w-full p-3 border rounded-lg mb-2">
+      <input type="text" id="kana-word" placeholder="假名" class="w-full p-3 border rounded-lg mb-2">
+      <input type="text" id="mean-word" placeholder="中文释义" class="w-full p-3 border rounded-lg mb-2">
+      <input type="text" id="audio-path" placeholder="audio/les1_01.mp3" value="audio/" class="w-full p-3 border rounded-lg mb-2">
+      <p class="text-xs text-gray-400 mb-2">音频命名规范：les课文号_序号.mp3，放入仓库audio文件夹</p>
+      <button onclick="addWordToLesson()" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg btn-hover shadow-sm">保存单词</button>
     </div>
+    <!-- 3. 预览/删除单词 -->
     <div class="bg-white rounded-lg p-4 mb-4 shadow-sm card">
-      <h3 class="font-bold text-lg mb-2">管理单词</h3>
-      <select id="manage-lesson" onchange="renderManageWord()" class="w-full p-3 border rounded-lg mb-2">
-        <option value="">选择课文</option>
+      <h3 class="font-bold text-lg mb-2">管理现有单词</h3>
+      <select id="manage-lesson" class="w-full p-3 border rounded-lg mb-2" onchange="renderManageWord()">
+        <option value="">选择课文查看</option>
       </select>
-      <div id="manage-word-box" class="max-h-60 overflow-y-auto space-y-2 mt-3"></div>
+      <div id="manage-word-box" class="mt-3 space-y-2 max-h-60 overflow-y-auto"></div>
     </div>
-    <div class="bg-white rounded-lg p-4 shadow-sm card teacher-block">
-      <h3 class="font-bold text-lg mb-2">【教师专用】合并全班榜单</h3>
-      <p class="text-sm mb-2">粘贴学生发来的多条成绩文本，一键合并生成新rank.json</p>
-      <textarea id="merge-input" placeholder="粘贴学生复制的所有记录" class="w-full h-24 p-2 border rounded mb-2"></textarea>
-      <button onclick="mergeRankData()" class="w-full bg-red-500 text-white py-2 rounded mb-2 btn-hover">合并生成完整榜单JSON</button>
-      <textarea readonly id="merge-result" class="w-full h-28 p-2 border rounded text-sm copy-area"></textarea>
-      <p class="text-xs mt-2 text-red-600">复制全部内容，去GitHub替换rank.json文件并提交，全班刷新网页即可看到新榜单</p>
-    </div>
-    <div class="bg-white rounded-lg p-4 mt-4 shadow-sm card">
-      <h3 class="font-bold text-lg mb-2">导出单词库 word-list.json</h3>
-      <button onclick="exportJsonFile()" class="w-full bg-emerald-500 text-white py-3 rounded-lg mb-2 btn-hover shadow-sm">导出JSON</button>
-      <button onclick="clearLocalCache()" class="w-full bg-red-100 text-red-600 py-3 rounded-lg btn-hover">清空本地编辑缓存</button>
+    <!-- 4. 导出配置文件 -->
+    <div class="bg-white rounded-lg p-4 shadow-sm card">
+      <h3 class="font-bold text-lg mb-2">导出线上配置 word-list.json</h3>
+      <p class="text-sm text-gray-500 mb-3">编辑完成后点击导出，下载文件上传覆盖仓库同名文件即可全网更新</p>
+      <button onclick="exportJsonFile()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg mb-2 btn-hover shadow-sm">导出 word-list.json</button>
+      <button onclick="clearLocalCache()" class="w-full bg-red-100 text-red-600 py-3 rounded-lg btn-hover">清空本地缓存（仅清除浏览器编辑记录）</button>
     </div>
   </div>
 </div>
 
 <script>
-// ========== 配置：替换成你自己GitHub Pages地址 ==========
-const GITHUB_RAW_RANK = "https://zoufan128-glitch.github.io/jp-word/rank.json";
-const GITHUB_RAW_WORD = "https://zoufan128-glitch.github.io/jp-word/word-list.json";
+  // 本地缓存编辑数据，刷新页面不丢失
+  let appData = JSON.parse(localStorage.getItem("jpWordEditorCache")) || { lessons: [] };
+  const audioPlayer = document.getElementById("audio-player");
 
-let appData = JSON.parse(localStorage.getItem("jpWordEditorCache")) || { lessons: [] };
-const audioPlayer = document.getElementById("audio-player");
-let onlineRankList = []; // 云端全班榜单
-let dictationData = {
-  currentLessonIdx: null,
-  currentLessonName: "",
-  words: [],
-  shuffledWords: [],
-  currentIndex: 0,
-  wrongWords: [],
-  timer: null,
-  startTime: 0,
-  elapsedTime: 0,
-  tempScore: null
-};
+  // 默写全局变量
+  let dictationData = {
+    currentLesson: null,
+    words: [],
+    shuffledWords: [],
+    currentIndex: 0,
+    wrongWords: [],
+    timer: null,
+    startTime: 0,
+    elapsedTime: 0
+  };
 
-// 页面加载拉取云端榜单
-window.addEventListener('DOMContentLoaded', async ()=>{
-  await loadOnlineWordData();
-  await loadCloudRank();
-  switchTab("study");
-})
+  // 切换面板（兼容3个标签）
+  function switchTab(tabName) {
+    // 停止默写计时
+    if (dictationData.timer) clearInterval(dictationData.timer);
 
-// 拉取云端单词库
-async function loadOnlineWordData(){
-  try{
-    const res = await fetch(GITHUB_RAW_WORD);
-    window.onlineWordData = await res.json();
-    renderStudyLesson(window.onlineWordData);
-    renderDictationLessonSelect();
-  }catch(e){
-    document.getElementById("lesson-select").innerHTML = `<option>单词库加载失败</option>`;
+    // 全部隐藏
+    document.getElementById("page-study").classList.add("hidden");
+    document.getElementById("page-editor").classList.add("hidden");
+    document.getElementById("page-dictation").classList.add("hidden");
+    document.getElementById("tab-study").classList.remove("tab-active");
+    document.getElementById("tab-editor").classList.remove("tab-active");
+    document.getElementById("tab-dictation").classList.remove("tab-active");
+
+    if (tabName === "study") {
+      document.getElementById("page-study").classList.remove("hidden");
+      document.getElementById("tab-study").classList.add("tab-active");
+      loadOnlineData();
+    } else if (tabName === "editor") {
+      document.getElementById("page-editor").classList.remove("hidden");
+      document.getElementById("tab-editor").classList.add("tab-active");
+      renderAllLessonSelect();
+      renderManageWord();
+    } else if (tabName === "dictation") {
+      document.getElementById("page-dictation").classList.remove("hidden");
+      document.getElementById("tab-dictation").classList.add("tab-active");
+      renderDictationLessonSelect();
+    }
   }
-}
 
-// 拉取GitHub云端共享榜单
-async function loadCloudRank(){
-  try{
-    const res = await fetch(GITHUB_RAW_RANK);
-    onlineRankList = await res.json();
-    renderRank("rate");
-  }catch(e){
-    onlineRankList = [];
+  // 保存编辑缓存到本地
+  function saveCache() {
+    localStorage.setItem("jpWordEditorCache", JSON.stringify(appData));
   }
-}
 
-// 切换标签
-function switchTab(tabName){
-  if(dictationData.timer) clearInterval(dictationData.timer);
-  ["page-study","page-dictation","page-rank","page-editor"].forEach(id=>document.getElementById(id).classList.add("hidden"));
-  ["tab-study","tab-dictation","tab-rank","tab-editor"].forEach(id=>document.getElementById(id).classList.remove("tab-active"));
-  if(tabName==="study"){
-    document.getElementById("page-study").classList.remove("hidden");
-    document.getElementById("tab-study").classList.add("tab-active");
-  }else if(tabName==="dictation"){
-    document.getElementById("page-dictation").classList.remove("hidden");
-    document.getElementById("tab-dictation").classList.add("hidden");
-    renderDictationLessonSelect();
-  }else if(tabName==="rank"){
-    document.getElementById("page-rank").classList.remove("hidden");
-    document.getElementById("tab-rank").classList.add("tab-active");
-    loadCloudRank();
-  }else if(tabName==="editor"){
-    document.getElementById("page-editor").classList.remove("hidden");
-    document.getElementById("tab-editor").classList.add("tab-active");
+  // 读取线上仓库的 word-list.json（学生端使用）
+  async function loadOnlineData() {
+    try {
+      const res = await fetch("word-list.json");
+      const onlineData = await res.json();
+      renderStudyLesson(onlineData);
+      window.onlineWordData = onlineData;
+      renderDictationLessonSelect();
+    } catch (e) {
+      document.getElementById("lesson-select").innerHTML = `<option value="">线上配置加载失败</option>`;
+      console.error("加载json失败：", e);
+    }
+  }
+
+  // 渲染学生端课文下拉
+  function renderStudyLesson(data) {
+    const sel = document.getElementById("lesson-select");
+    sel.innerHTML = `<option value="">选择课文</option>`;
+    data.lessons.forEach((les, idx) => {
+      sel.innerHTML += `<option value="${idx}">${les.name}</option>`;
+    })
+  }
+
+  // 渲染默写页面课文下拉
+  function renderDictationLessonSelect() {
+    if (!window.onlineWordData) return;
+    const sel = document.getElementById("dictation-lesson-select");
+    sel.innerHTML = `<option value="">选择课文</option>`;
+    window.onlineWordData.lessons.forEach((les, idx) => {
+      sel.innerHTML += `<option value="${idx}">${les.name}</option>`;
+    });
+  }
+
+  // 渲染编辑区所有课文下拉
+  function renderAllLessonSelect() {
+    const editSel = document.getElementById("target-lesson-edit");
+    const manageSel = document.getElementById("manage-lesson");
+    editSel.innerHTML = `<option value="">选择目标课文</option>`;
+    manageSel.innerHTML = `<option value="">选择课文查看</option>`;
+    appData.lessons.forEach((les, idx) => {
+      editSel.innerHTML += `<option value="${idx}">${les.name}</option>`;
+      manageSel.innerHTML += `<option value="${idx}">${les.name}</option>`;
+    })
+  }
+
+  // 新增课文
+  function addNewLesson() {
+    const name = document.getElementById("new-lesson-name").value.trim();
+    if (!name) return alert("请输入课文名称");
+    appData.lessons.push({ name: name, words: [] });
+    saveCache();
+    document.getElementById("new-lesson-name").value = "";
+    renderAllLessonSelect();
+    alert("课文创建成功！");
+  }
+
+  // 添加单词到指定课文
+  function addWordToLesson() {
+    const lesIdx = document.getElementById("target-lesson-edit").value;
+    const jp = document.getElementById("jp-word").value.trim();
+    const kana = document.getElementById("kana-word").value.trim();
+    const mean = document.getElementById("mean-word").value.trim();
+    const audioPath = document.getElementById("audio-path").value.trim();
+    if (lesIdx === "" || !jp || !kana || !mean || !audioPath) {
+      return alert("请完整填写单词信息与音频路径");
+    }
+    appData.lessons[lesIdx].words.push({
+      jp, kana, mean, audioPath
+    });
+    saveCache();
+    // 清空输入框
+    document.getElementById("jp-word").value = "";
+    document.getElementById("kana-word").value = "";
+    document.getElementById("mean-word").value = "";
+    document.getElementById("audio-path").value = "audio/";
     renderAllLessonSelect();
     renderManageWord();
+    alert("单词添加完成！");
   }
-}
 
-// 单词渲染相关函数省略（完整代码保留原有背诵/编辑逻辑）
-function saveCache(){localStorage.setItem("jpWordEditorCache",JSON.stringify(appData))}
-function renderStudyLesson(data){
-  const sel=document.getElementById("lesson-select");
-  sel.innerHTML="<option>选择课文</option>";
-  data.lessons.forEach((les,i)=>sel.innerHTML+=`<option value="${i}">${les.name}</option>`)
-}
-function renderDictationLessonSelect(){
-  const sel=document.getElementById("dictation-lesson-select");
-  sel.innerHTML="<option>选择课文</option>";
-  window.onlineWordData.lessons.forEach((les,i)=>sel.innerHTML+=`<option value="${i}">${les.name}</option>`)
-}
-function renderAllLessonSelect(){
-  const e=document.getElementById("target-lesson-edit"),m=document.getElementById("manage-lesson");
-  e.innerHTML="<option>选择目标课文</option>";m.innerHTML="<option>选择课文</option>";
-  appData.lessons.forEach((les,i)=>{
-    e.innerHTML+=`<option value="${i}">${les.name}</option>`;
-    m.innerHTML+=`<option value="${i}">${les.name}</option>`;
-  })
-}
-function addNewLesson(){
-  const n=document.getElementById("new-lesson-name").value.trim();
-  if(!n)return alert("输入课文名");
-  appData.lessons.push({name:n,words:[]});saveCache();document.getElementById("new-lesson-name").value="";renderAllLessonSelect();alert("创建成功")
-}
-function addWordToLesson(){
-  const i=document.getElementById("target-lesson-edit").value;
-  const j=document.getElementById("jp-word").value.trim();
-  const k=document.getElementById("kana-word").value.trim();
-  const me=document.getElementById("mean-word").value.trim();
-  const a=document.getElementById("audio-path").value.trim();
-  if(!i||!j||!k||!me||!a)return alert("填全信息");
-  appData.lessons[i].push({jp:j,kana:k,mean:me,audioPath:a});saveCache();
-  ["jp-word","kana-word","mean-word"].forEach(id=>document.getElementById(id).value="");
-  document.getElementById("audio-path").value="audio/";
-  renderAllLessonSelect();renderManageWord();alert("单词添加完成")
-}
-function renderManageWord(){
-  const box=document.getElementById("manage-word-box"),idx=document.getElementById("manage-lesson").value;
-  box.innerHTML="";if(idx==="")return;
-  const list=appData.lessons[idx].words;
-  if(list.length===0){box.innerHTML="<div class='text-gray-400 py-4 text-center'>无单词</div>";return}
-  list.forEach((w,i)=>{
-    const div=document.createElement("div");
-    div.className="flex justify-between border p-2 rounded text-sm";
-    div.innerHTML=`${w.jp}【${w.kana}】${w.mean}<button onclick="deleteWord(${idx},${i})" class="text-red-500">删除</button>`;
-    box.appendChild(div);
-  })
-}
-function deleteWord(li,wi){
-  if(!confirm("删除？"))return;
-  appData.lessons[li].splice(wi,1);saveCache();renderManageWord();
-}
-function exportJsonFile(){
-  const blob=new Blob([JSON.stringify(appData,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="word-list.json";a.click();alert("导出完成，上传覆盖仓库文件")
-}
-function clearLocalCache(){
-  if(!confirm("清空本地编辑缓存？"))return;
-  appData={lessons:[]};saveCache();renderAllLessonSelect();renderManageWord();alert("已清空")
-}
-function renderWordList(){
-  const wrap=document.getElementById("word-list"),idx=document.getElementById("lesson-select").value;
-  wrap.innerHTML="";if(idx===""||!window.onlineWordData)return;
-  const words=window.onlineWordData.lessons[idx].words;
-  words.forEach(w=>{
-    const card=document.createElement("div");
-    card.className="word-card bg-white p-4 rounded shadow cursor-pointer";
-    card.innerHTML=`<div class="font-bold text-lg">${w.jp}</div><div class="text-sky-600 text-sm">${w.kana}</div><div class="text-slate-500 text-sm mt-1">${w.mean}</div>`;
-    card.onclick=()=>{audioPlayer.src=w.audioPath;audioPlayer.play().catch(e=>alert("音频路径错误"))};
-    wrap.appendChild(card);
-  })
-}
-async function playAllWords(){
-  const idx=document.getElementById("lesson-select").value;
-  if(idx===""||!window.onlineWordData)return alert("等待加载");
-  const words=window.onlineWordData.lessons[idx].words;
-  try{
-    audioPlayer.src=words[0];await audioPlayer.play();
-    for(let i=1;i<words.length;i++){
-      await new Promise(r=>setTimeout(r,1300));
-      audioPlayer.src=words[i];await audioPlayer.play().catch(e=>{})
+  // 编辑区渲染单词列表（支持删除）
+  function renderManageWord() {
+    const box = document.getElementById("manage-word-box");
+    const selIdx = document.getElementById("manage-lesson").value;
+    box.innerHTML = "";
+    if (selIdx === "") return;
+    const wordList = appData.lessons[selIdx].words;
+    if (wordList.length === 0) {
+      box.innerHTML = "<div class='text-gray-400 text-center py-4'>本课暂无单词</div>";
+      return;
     }
-  }catch(e){alert("请先单点单词播放一次")}
-}
+    wordList.forEach((word, wIdx) => {
+      const item = document.createElement("div");
+      item.className = "flex justify-between items-center border p-2 rounded";
+      item.innerHTML = `
+        <div class="text-sm">${word.jp}【${word.kana}】${word.mean}</div>
+        <button onclick="deleteWord(${selIdx},${wIdx})" class="text-red-500 text-sm">删除</button>
+      `;
+      box.appendChild(item);
+    })
+  }
 
-// 默写逻辑
-function initDictation(){
-  const name=document.getElementById("stu-name").value.trim();
-  const idx=document.getElementById("dictation-lesson-select").value;
-  if(!name)return alert("填写姓名");if(idx==="")return alert("选择课文");
-  const les=window.onlineWordData.lessons[idx];
-  dictationData={
-    currentLessonIdx:idx,currentLessonName:les.name,
-    words:les.words,shuffledWords:[...les.words].sort(()=>Math.random()-0.5),
-    currentIndex:0,wrongWords:[],timer:null,elapsedTime:0,tempScore:null
+  // 删除单词
+  function deleteWord(lesIdx, wordIdx) {
+    if (!confirm("确定删除该单词？")) return;
+    appData.lessons[lesIdx].words.splice(wordIdx, 1);
+    saveCache();
+    renderManageWord();
   }
-  document.getElementById("dictation-result").classList.add("hidden");
-  document.getElementById("dictation-area").classList.remove("hidden");
-  updateDictationProgress();showDictationQuestion();startDictationTimer();
-}
-function showDictationQuestion(){
-  if(dictationData.currentIndex>=dictationData.shuffledWords.length){finishDictation();return}
-  const w=dictationData.shuffledWords[dictationData.currentIndex];
-  const q=Math.random()>0.5?`假名「${w.kana}」写出单词`:`释义「${w.mean}」写出单词`;
-  document.getElementById("dictation-question").innerText=q;
-  document.getElementById("dictation-answer").value="";
-  document.getElementById("answer-feedback").classList.add("hidden");
-}
-function checkAnswer(){
-  const ans=document.getElementById("dictation-answer").value.trim();
-  const w=dictationData.shuffledWords[dictationData.currentIndex];
-  const fb=document.getElementById("answer-feedback");
-  if(!ans)return alert("输入答案");
-  fb.classList.remove("hidden");
-  if(ans===w.jp){fb.innerText="✅正确";fb.className="text-green-600 text-center mt-3"}
-  else{fb.innerText=`❌错误，正确：${w.jp}`;fb.className="text-red-600 text-center mt-3";
-    if(!dictationData.wrongWords.includes(w))dictationData.wrongWords.push(w);
-  }
-  setTimeout(()=>{dictationData.currentIndex++;updateDictationProgress();showDictationQuestion()},1500)
-}
-function updateDictationProgress(){
-  const total=dictationData.shuffled.length,curr=dictationData.currentIndex;
-  document.getElementById("dictation-progress").innerText=`进度：${curr}/${total}`
-}
-function startDictationTimer(){
-  if(dictationData.timer)clearInterval(dictationData.timer);
-  dictationData.startTime=Date.now()-dictationData.elapsedTime;
-  dictationData.timer=setInterval(()=>{
-    dictationData.elapsedTime=Date.now()-dictationData.startTime;
-    const m=Math.floor(dictationData.elapsedTime/60000).toString().padStart(2,"");
-    const s=Math.floor((dictationData.elapsedTime%60000)/1000).toString().padStart(2,"");
-    document.getElementById("dictation-timer").innerText=`计时：${m}:${s}`;
-  },1000)
-}
-function finishDictation(){
-  clearInterval(dictationData.timer);
-  const total=dictationData.shuffledWords.length;
-  const wrong=dictationData.wrongWords.length;
-  const correct=total-wrong;
-  const rate=total>0?Math.round(correct/total*100):0;
-  const ms=dictationData.elapsedTime;
-  const m=Math.floor(ms/60000).toString().padStart(2,"");
-  const s=Math.floor((ms%60000)/1000).toString().padStart(2,"");
-  const timeStr=`${m}:${s}`;
-  const name=document.getElementById("stu-name").value.trim();
-  dictationData.tempScore={
-    name,lesson:dictationData.currentLessonName,total,correct,rate,useMs:ms,useTimeStr:timeStr,time:new Date().toLocaleString()
-  }
-  document.getElementById("dictation-score").innerText=correct;
-  document.getElementById("dictation-total").innerText=total;
-  document.getElementById("dictation-rate").innerText=`${rate}%`;
-  document.getElementById("dict-use-time").innerText=timeStr;
-  const wBox=document.getElementById("wrong-words-list");
-  wBox.innerHTML="";
-  if(wrong===0)wBox.innerHTML="<div class='text-slate-400'>全对🎉</div>";
-  else dictationData.wrongWords.forEach(w=>wBox.innerHTML+=`<div>${w.jp}【${w.kana}】${w.mean}</div>`);
-  document.getElementById("dictation-area").classList.add("hidden");
-  document.getElementById("dictation-result").classList.remove("hidden");
-  document.getElementById("copy-modal").classList.add("hidden");
-}
-// 学生复制成绩给老师
-function copyScoreForTeacher(){
-  const s=dictationData.tempScore;
-  const text=JSON.stringify(s)+",";
-  document.getElementById("copy-text").value=text;
-  document.getElementById("copy-modal").classList.remove("hidden");
-}
-// 一键复制到剪贴板
-async function copyTextToClip(){
-  const t=document.getElementById("copy-text");
-  t.select();
-  await navigator.clipboard.writeText(t.value);
-  alert("复制成功，发给老师更新榜单！");
-}
-function skipSaveScore(){
-  dictationData.tempScore=null;resetDictation();alert("本次成绩不录入榜单")
-}
-function resetDictation(){
-  clearInterval(dictationData.timer);
-  dictationData={currentLessonIdx:null,currentLessonName:"",words:[],shuffledWords:[],currentIndex:0,wrongWords:[],timer:null,elapsedTime:0,tempScore:null};
-  document.getElementById("dictation-area").classList.add("hidden");
-  document.getElementById("dictation-result").classList.add("hidden");
-  document.getElementById("copy-modal").classList.add("hidden");
-  document.getElementById("dictation-progress").innerText="进度：0/0";
-  document.getElementById("dictation-timer").innerText="计时：00:00";
-  document.getElementById("dictation-lesson-select").value="";
-}
-function retryWrongWords(){
-  if(dictationData.wrongWords.length===0)return alert("无错题");
-  dictationData.shuffledWords=[...dictationData.wrongWords].sort(()=>Math.random()-0.5);
-  dictationData.currentIndex=0;dictationData.wrongWords=[];dictationData.elapsedTime=0;dictationData.tempScore=null;
-  document.getElementById("dictation-result").classList.add("hidden");
-  document.getElementById("dictation-area").classList.remove("hidden");
-  updateDictationProgress();showDictationQuestion();startDictationTimer();
-}
-document.getElementById("dictation-answer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer()})
 
-// 渲染云端全班排行榜
-function renderRank(sortType){
-  const box=document.getElementById("rank-list-box");
-  box.innerHTML="";
-  if(onlineRankList.length===0){
-    box.innerHTML="<div class='text-center py-10 text-slate-400'>暂无榜单记录，完成默写提交给老师</div>";
-    return;
+  // 导出 word-list.json 文件
+  function exportJsonFile() {
+    const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "word-list.json";
+    a.click();
+    alert("导出成功！将下载的json上传覆盖仓库原文件即可更新全站单词");
   }
-  let list=[...onlineRankList];
-  if(sortType==="rate") list.sort((a,b)=>b.rate - a.rate || a.useMs - b.useMs);
-  else list.sort((a,b)=>a.useMs - b.useMs || b.rate - a.rate);
-  list.forEach((item,i)=>{
-    let cls="rank-normal";
-    if(i===0)cls="rank-1";if(i===1)cls="rank-2";if(i===2)cls="rank-3";
-    const div=document.createElement("div");
-    div.className="bg-white rounded p-4 flex gap-3 items-center card";
-    div.innerHTML=`
-      <span class="w-8 h-8 flex rounded-full font-bold flex items-center justify-center ${cls}">${i+1}</span>
-      <div class="flex-1">
-        <div class="font-bold">${item.name}</div>
-        <div class="text-sm text-slate-500">课文：${item.lesson}</div>
-        <div class="text-sm mt-1">答对${item.correct}/${item.total}｜正确率${item.rate}%｜用时${item.useTimeStr}</div>
-        <div class="text-xs text-gray-400">${item.time}</div>
-      </div>
-    `;
-    box.appendChild(div);
-  })
-}
 
-// 教师合并榜单工具
-function mergeRankData(){
-  const input=document.getElementById("merge-input").value.trim();
-  if(!input)return alert("粘贴学生发来的记录文本");
-  let newRecords=[];
-  try{
-    const arrStr=`[${input.replace(/,$/,"")}]`;
-    newRecords=JSON.parse(arrStr);
-  }catch(e){
-    return alert("文本格式错误，请让学生重新复制提交");
+  // 清空本地浏览器缓存
+  function clearLocalCache() {
+    if (!confirm("确定清空本地所有编辑缓存？不会影响线上仓库文件")) return;
+    appData = { lessons: [] };
+    saveCache();
+    renderAllLessonSelect();
+    renderManageWord();
+    alert("本地缓存已清空");
   }
-  // 合并云端旧榜单+新学生记录
-  const fullList=[...onlineRankList,...newRecords];
-  const output=JSON.stringify(fullList,null,2);
-  document.getElementById("merge-result").value=output;
-  alert("合并完成！复制下方全部内容，去GitHub替换rank.json文件");
-}
+
+  // 学生端渲染单词卡片
+  function renderWordList() {
+    const container = document.getElementById("word-list");
+    const selIdx = document.getElementById("lesson-select").value;
+    container.innerHTML = "";
+    if (selIdx === "" || !window.onlineWordData) {
+      container.innerHTML = `
+        <div class="col-span-2 py-8 text-center text-slate-400">
+          <div class="mb-2 animate-spin text-2xl">🔄</div>
+          <p>请选择课文或等待数据加载</p>
+        </div>
+      `;
+      return;
+    }
+    const words = window.onlineWordData.lessons[selIdx].words;
+    words.forEach(word => {
+      const card = document.createElement("div");
+      card.className = "word-card bg-white p-4 rounded-lg shadow-sm active:bg-blue-50 cursor-pointer";
+      card.innerHTML = `
+        <div class="text-lg font-bold text-slate-900">${word.jp}</div>
+        <div class="text-sm text-sky-600">${word.kana}</div>
+        <div class="text-sm text-slate-500 mt-1">${word.mean}</div>
+      `;
+      card.onclick = () => {
+        audioPlayer.src = word.audioPath;
+        audioPlayer.play().catch(err => {
+          console.error("音频播放失败：", err);
+          alert(`音频加载失败：${word.audioPath}\n检查文件路径/格式`);
+        });
+      }
+      container.appendChild(card);
+    })
+  }
+
+  // 批量朗读全部单词
+  async function playAllWords() {
+    const selIdx = document.getElementById("lesson-select").value;
+    if (selIdx === "" || !window.onlineWordData) return alert("请等待单词加载完成");
+    const words = window.onlineWordData.lessons[selIdx].words;
+    try {
+      // 先播放第一个获取用户交互权限
+      audioPlayer.src = words[0].audioPath;
+      await audioPlayer.play();
+      for (let i = 1; i < words.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1300));
+        audioPlayer.src = words[i].audioPath;
+        await audioPlayer.play().catch(e => console.warn("音频跳过：", e));
+      }
+    } catch (err) {
+      alert("浏览器限制自动播放，请先点击单个单词播放一次！");
+    }
+  }
+
+  // ========== 默写功能全套逻辑 ==========
+  // 初始化默写
+  function initDictation() {
+    const selIdx = document.getElementById("dictation-lesson-select").value;
+    if (selIdx === "" || !window.onlineWordData) return alert("请选择课文");
+
+    dictationData = {
+      currentLesson: selIdx,
+      words: window.onlineWordData.lessons[selIdx].words,
+      shuffledWords: [...window.onlineWordData.lessons[selIdx].words].sort(() => Math.random() - 0.5),
+      currentIndex: 0,
+      wrongWords: [],
+      elapsedTime: 0
+    };
+
+    document.getElementById("dictation-result").classList.add("hidden");
+    document.getElementById("dictation-area").classList.remove("hidden");
+    updateDictationProgress();
+    showDictationQuestion();
+    startDictationTimer();
+  }
+
+  // 展示题目（随机假名/释义出题）
+  function showDictationQuestion() {
+    if (dictationData.currentIndex >= dictationData.shuffledWords.length) {
+      finishDictation();
+      return;
+    }
+    const currentWord = dictationData.shuffledWords[dictationData.currentIndex];
+    const randomType = Math.random() > 0.5 ? "kana" : "mean";
+    const questionText = randomType === "kana"
+      ? `请写出假名「${currentWord.kana}」对应的日文单词`
+      : `请写出释义「${currentWord.mean}」对应的日文单词`;
+    document.getElementById("dictation-question").textContent = questionText;
+    document.getElementById("dictation-answer").value = "";
+    document.getElementById("answer-feedback").classList.add("hidden");
+  }
+
+  // 校验答案
+  function checkAnswer() {
+    const answer = document.getElementById("dictation-answer").value.trim();
+    const currentWord = dictationData.shuffledWords[dictationData.currentIndex];
+    const feedback = document.getElementById("answer-feedback");
+    if (!answer) return alert("请输入答案");
+
+    feedback.classList.remove("hidden");
+    if (answer === currentWord.jp) {
+      feedback.textContent = `✅ 正确！`;
+      feedback.className = "mt-3 text-center text-green-600";
+    } else {
+      feedback.textContent = `❌ 错误，正确答案：${currentWord.jp}`;
+      feedback.className = "mt-3 text-center text-red-600";
+      if (!dictationData.wrongWords.includes(currentWord)) {
+        dictationData.wrongWords.push(currentWord);
+      }
+    }
+    setTimeout(() => {
+      dictationData.currentIndex++;
+      updateDictationProgress();
+      showDictationQuestion();
+    }, 1500);
+  }
+
+  // 更新进度文字
+  function updateDictationProgress() {
+    const total = dictationData.shuffledWords.length;
+    const curr = dictationData.currentIndex;
+    document.getElementById("dictation-progress").textContent = `进度：${curr}/${total}`;
+  }
+
+  // 计时
+  function startDictationTimer() {
+    if (dictationData.timer) clearInterval(dictationData.timer);
+    dictationData.startTime = Date.now() - dictationData.elapsedTime;
+    dictationData.timer = setInterval(() => {
+      dictationData.elapsedTime = Date.now() - dictationData.startTime;
+      const m = Math.floor(dictationData.elapsedTime / 60000).toString().padStart(2, "0");
+      const s = Math.floor((dictationData.elapsedTime % 60000) / 1000).toString().padStart(2, "0");
+      document.getElementById("dictation-timer").textContent = `计时：${m}:${s}`;
+    }, 1000);
+  }
+
+  // 默写结束，展示成绩
+  function finishDictation() {
+    clearInterval(dictationData.timer);
+    const total = dictationData.shuffledWords.length;
+    const wrong = dictationData.wrongWords.length;
+    const correct = total - wrong;
+    const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    document.getElementById("dictation-score").textContent = correct;
+    document.getElementById("dictation-total").textContent = total;
+    document.getElementById("dictation-rate").textContent = `${rate}%`;
+
+    const wrongBox = document.getElementById("wrong-words-list");
+    wrongBox.innerHTML = "";
+    if (wrong === 0) {
+      wrongBox.innerHTML = `<div class="text-slate-400 text-center py-2">暂无错误单词 🎉</div>`;
+    } else {
+      dictationData.wrongWords.forEach(w => {
+        wrongBox.innerHTML += `<div class="p-2 border-b border-gray-100">${w.jp}【${w.kana}】- ${w.mean}</div>`;
+      });
+    }
+    document.getElementById("dictation-area").classList.add("hidden");
+    document.getElementById("dictation-result").classList.remove("hidden");
+  }
+
+  // 重置默写全部状态
+  function resetDictation() {
+    clearInterval(dictationData.timer);
+    dictationData = {
+      currentLesson: null,
+      words: [],
+      shuffledWords: [],
+      currentIndex: 0,
+      wrongWords: [],
+      timer: null,
+      startTime: 0,
+      elapsedTime: 0
+    };
+    document.getElementById("dictation-area").classList.add("hidden");
+    document.getElementById("dictation-result").classList.add("hidden");
+    document.getElementById("dictation-progress").textContent = "进度：0/0";
+    document.getElementById("dictation-timer").textContent = "计时：00:00";
+    document.getElementById("dictation-lesson-select").value = "";
+  }
+
+  // 仅重练错题
+  function retryWrongWords() {
+    if (dictationData.wrongWords.length === 0) return alert("暂无错题");
+    dictationData.shuffledWords = [...dictationData.wrongWords].sort(() => Math.random() - 0.5);
+    dictationData.currentIndex = 0;
+    dictationData.wrongWords = [];
+    dictationData.elapsedTime = 0;
+    document.getElementById("dictation-result").classList.add("hidden");
+    document.getElementById("dictation-area").classList.remove("hidden");
+    updateDictationProgress();
+    showDictationQuestion();
+    startDictationTimer();
+  }
+
+  // 默写输入框回车提交
+  document.getElementById("dictation-answer").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkAnswer();
+  });
+
+  // 页面初始化
+  window.onload = function () {
+    switchTab("study");
+  }
 </script>
 </body>
 </html>
