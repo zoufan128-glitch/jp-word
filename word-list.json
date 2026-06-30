@@ -1,10 +1,143 @@
 {
-  "jp": "来ます",
-  "kana": "きます",
-  "mean": "来",
-  "accent": "0",
-  "verbType": "一段",
-  "jido": "自",
-  "tado": "",
-  "audioPath": "audio/Les_01.m4a"
+  "lessons": [
+    {
+      "name": "樱花2级别第一课",
+      "words": []
+    },
+    {
+      "name": "樱花二级别第1课",
+      "words": [
+        {
+          "jp": "来ます",
+          "kana": "きます",
+          "mean": "来",
+          "accent": "",
+          "verbType": "Ⅲ",
+          "jido": "自",
+          "tado": "",
+          "audioPath": "audio/Les_01.m4a"
+        },
+        {
+          "jp": "します",
+          "kana": "します",
+          "mean": "做、干",
+          "accent": "",
+          "verbType": "Ⅲ",
+          "jido": "",
+          "tado": "他",
+          "audioPath": "audio/Les_02.m4a"
+        },
+        {
+          "jp": "私たち",
+          "kana": "わたしたち",
+          "mean": "我们",
+          "accent": "2",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_03.m4a"
+        },
+        {
+          "jp": "あの人",
+          "kana": "あのひと",
+          "mean": "那个人",
+          "accent": "2",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_04.m4a"
+        },
+        {
+          "jp": "あの方",
+          "kana": "あのかた",
+          "mean": "那位",
+          "accent": "0",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_05.m4a"
+        },
+        {
+          "jp": "皆さん",
+          "kana": "みなさん",
+          "mean": "大家、各位",
+          "accent": "2",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_06.m4a"
+        },
+        {
+          "jp": "こちら",
+          "kana": "こちら",
+          "mean": "这边、这位",
+          "accent": "0",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_07.m4a"
+        },
+        {
+          "jp": "さん",
+          "kana": "さん",
+          "mean": "～先生、～女士、～同志、小～、老～",
+          "accent": "",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_08.m4a"
+        },
+        {
+          "jp": "ちゃん",
+          "kana": "ちゃん",
+          "mean": "（用于小孩的名字后,比自己小或下级）",
+          "accent": "",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_09.m4a"
+        },
+        {
+          "jp": "君",
+          "kana": "くん",
+          "mean": "（用于男子的名字后，比自己小或下级）",
+          "accent": "",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_10.m4a"
+        },
+        {
+          "jp": "人",
+          "kana": "じん",
+          "mean": "～人（表国籍、如“アメリカ人”)",
+          "accent": "",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_11.m4a"
+        },
+        {
+          "jp": "可愛い",
+          "kana": "かわいい",
+          "mean": "可爱的",
+          "accent": "3",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_12.m4a"
+        },
+        {
+          "jp": "病院",
+          "kana": "びょういん",
+          "mean": "医院",
+          "accent": "0",
+          "verbType": "",
+          "jido": "",
+          "tado": "",
+          "audioPath": "audio/Les_13.m4a"
+        }
+      ]
+    }
+  ]
 }
