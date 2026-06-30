@@ -15,7 +15,7 @@
           "verbType": "Ⅲ",
           "jido": "自",
           "tado": "",
-          "audioPath": "audio/Les1_01.m4a"
+          "audioPath": "audio/Les_01.m4a"
         },
         {
           "jp": "します",
@@ -25,7 +25,7 @@
           "verbType": "Ⅲ",
           "jido": "",
           "tado": "他",
-          "audioPath": "audio/Les1_02.m4a"
+          "audioPath": "audio/Les_02.m4a"
         },
         {
           "jp": "私たち",
@@ -35,7 +35,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_03.m4a"
+          "audioPath": "audio/Les_03.m4a"
         },
         {
           "jp": "あの人",
@@ -45,7 +45,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_04.m4a"
+          "audioPath": "audio/Les_04.m4a"
         },
         {
           "jp": "あの方",
@@ -55,7 +55,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_05.m4a"
+          "audioPath": "audio/Les_05.m4a"
         },
         {
           "jp": "皆さん",
@@ -65,7 +65,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_06.m4a"
+          "audioPath": "audio/Les_06.m4a"
         },
         {
           "jp": "こちら",
@@ -75,7 +75,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_07.m4a"
+          "audioPath": "audio/Les_07.m4a"
         },
         {
           "jp": "さん",
@@ -85,7 +85,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_08.m4a"
+          "audioPath": "audio/Les_08.m4a"
         },
         {
           "jp": "ちゃん",
@@ -95,7 +95,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_09.m4a"
+          "audioPath": "audio/Les_09.m4a"
         },
         {
           "jp": "君",
@@ -105,7 +105,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_10.m4a"
+          "audioPath": "audio/Les_10.m4a"
         },
         {
           "jp": "人",
@@ -115,7 +115,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_11.m4a"
+          "audioPath": "audio/Les_11.m4a"
         },
         {
           "jp": "可愛い",
@@ -125,7 +125,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_12.m4a"
+          "audioPath": "audio/Les_12.m4a"
         },
         {
           "jp": "病院",
@@ -135,7 +135,7 @@
           "verbType": "",
           "jido": "",
           "tado": "",
-          "audioPath": "audio/Les1_13.m4a"
+          "audioPath": "audio/Les_13.m4a"
         }
       ]
     }
