@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>日语教材单词音频库（教师编辑版）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .word-card:active { transform: scale(0.97); }
+    audio { display: none; }
+    .tab-active { background-color: #3b82f6; color: white; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-24">
+<div class="max-w-xl mx-auto p-4">
+  <header class="text-center my-6">
+    <h1 class="text-2xl font-bold text-slate-800">日语单词发音合集</h1>
+    <p class="text-slate-500 text-sm mt-1">自制录音 · 教师可在线编辑</p>
+  </header>
+
+  <!-- 标签切换 -->
+  <div class="flex rounded-lg overflow-hidden mb-6 border">
+    <button onclick="switchTab('study')" id="tab-study" class="flex-1 py-3 font-medium tab-active">学生背诵</button>
+    <button onclick="switchTab('editor')" id="tab-editor" class="flex-1 py-3 font-medium bg-white text-slate-600">教师编辑</button>
+  </div>
+
+  <!-- ========== 学生背诵页面 ========== -->
+  <div id="page-study">
+    <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+      <label class="text-slate-700 font-medium">选择课文</label>
+      <select id="lesson-select" class="w-full mt-2 p-3 border rounded-lg" onchange="renderWordList()">
+        <option value="">加载中...</option>
+      </select>
+      <button onclick="playAllWords()" class="w-full mt-3 bg-green-500 text-white py-2 rounded-lg">批量朗读本课单词</button>
+    </div>
+    <div id="word-list" class="grid grid-cols-2 gap-3"></div>
+    <audio id="audio-player">
+  </div>
+
+  <!-- ========== 教师编辑页面 ========== -->
+  <div id="page-editor" class="hidden">
+    <!-- 1. 新增课文 -->
+    <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+      <h3 class="font-bold text-lg mb-2">新增课文单元</h3>
+      <input type="text" id="new-lesson-name" placeholder="例：第1课 日常あいさつ" class="w-full p-3 border rounded-lg mb-2">
+      <button onclick="addNewLesson()" class="w-full bg-sky-500 text-white py-2 rounded-lg">创建课文</button>
+    </div>
+
+    <!-- 2. 添加单词表单 -->
+    <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+      <h3 class="font-bold text-lg mb-2">添加单词（音频提前上传到 audio/ 文件夹）</h3>
+      <select id="target-lesson-edit" class="w-full p-3 border rounded-lg mb-2">
+        <option value="">请先创建课文</option>
+      </select>
+      <input type="text" id="jp-word" placeholder="日文单词" class="w-full p-3 border rounded-lg mb-2">
+      <input type="text" id="kana-word" placeholder="假名" class="w-full p-3 border rounded-lg mb-2">
+      <input type="text" id="mean-word" placeholder="中文释义" class="w-full p-3 border rounded-lg mb-2">
+      <input type="text" id="audio-path" placeholder="audio/les1_01.mp3" value="audio/" class="w-full p-3 border rounded-lg mb-2">
+      <p class="text-xs text-gray-400 mb-2">音频命名规范：les课文号_序号.mp3，放入仓库audio文件夹</p>
+      <button onclick="addWordToLesson()" class="w-full bg-orange-500 text-white py-2 rounded-lg">保存单词</button>
+    </div>
+
+    <!-- 3. 预览/删除单词 -->
+    <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+      <h3 class="font-bold text-lg mb-2">管理现有单词</h3>
+      <select id="manage-lesson" class="w-full p-3 border rounded-lg mb-2" onchange="renderManageWord()">
+        <option value="">选择课文查看</option>
+      </select>
+      <div id="manage-word-box" class="mt-3 space-y-2 max-h-60 overflow-y-auto"></div>
+    </div>
+
+    <!-- 4. 导出配置文件（核心更新功能） -->
+    <div class="bg-white rounded-lg p-4 shadow-sm">
+      <h3 class="font-bold text-lg mb-2">导出线上配置 word-list.json</h3>
+      <p class="text-sm text-gray-500 mb-3">编辑完成后点击导出，下载文件上传覆盖Gitee仓库同名文件即可全网更新</p>
+      <button onclick="exportJsonFile()" class="w-full bg-emerald-500 text-white py-2 rounded-lg mb-2">导出 word-list.json</button>
+      <button onclick="clearLocalCache()" class="w-full bg-red-100 text-red-600 py-2 rounded-lg">清空本地缓存（仅清除浏览器编辑记录）</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 本地缓存编辑数据，刷新页面不丢失
+  let appData = JSON.parse(localStorage.getItem("jpWordEditorCache")) || { lessons: [] };
+  const audioPlayer = document.getElementById("audio-player");
+
+  // 切换面板
+  function switchTab(tabName) {
+    document.getElementById("page-study").classList.add("hidden");
+    document.getElementById("page-editor").classList.add("hidden");
+    document.getElementById("tab-study").classList.remove("tab-active");
+    document.getElementById("tab-editor").classList.remove("tab-active");
+    if (tabName === "study") {
+      document.getElementById("page-study").classList.remove("hidden");
+      document.getElementById("tab-study").classList.add("tab-active");
+      loadOnlineData();
+    } else {
+      document.getElementById("page-editor").classList.remove("hidden");
+      document.getElementById("tab-editor").classList.add("tab-active");
+      renderAllLessonSelect();
+      renderManageWord();
+    }
+  }
+
+  // 保存编辑缓存到本地
+  function saveCache() {
+    localStorage.setItem("jpWordEditorCache", JSON.stringify(appData));
+  }
+
+  // 读取线上仓库的 word-list.json（学生端使用）
+  async function loadOnlineData() {
+    try {
+      const res = await fetch("word-list.json");
+      const onlineData = await res.json();
+      renderStudyLesson(onlineData);
+      window.onlineWordData = onlineData;
+    } catch (e) {
+      document.getElementById("lesson-select").innerHTML = `<option value="">线上配置加载失败</option>`;
+      console.error(e);
+    }
+  }
+
+  // 渲染学生端课文下拉
+  function renderStudyLesson(data) {
+    const sel = document.getElementById("lesson-select");
+    sel.innerHTML = `<option value="">选择课文</option>`;
+    data.lessons.forEach((les, idx) => {
+      sel.innerHTML += `<option value="${idx}">${les.name}</option>`;
+    })
+  }
+
+  // 渲染编辑区所有课文下拉
+  function renderAllLessonSelect() {
+    const editSel = document.getElementById("target-lesson-edit");
+    const manageSel = document.getElementById("manage-lesson");
+    editSel.innerHTML = `<option value="">选择目标课文</option>`;
+    manageSel.innerHTML = `<option value="">选择课文查看</option>`;
+    appData.lessons.forEach((les, idx) => {
+      editSel.innerHTML += `<option value="${idx}">${les.name}</option>`;
+      manageSel.innerHTML += `<option value="${idx}">${les.name}</option>`;
+    })
+  }
+
+  // 新增课文
+  function addNewLesson() {
+    const name = document.getElementById("new-lesson-name").value.trim();
+    if (!name) return alert("请输入课文名称");
+    appData.lessons.push({ name: name, words: [] });
+    saveCache();
+    document.getElementById("new-lesson-name").value = "";
+    renderAllLessonSelect();
+    alert("课文创建成功！");
+  }
+
+  // 添加单词到指定课文
+  function addWordToLesson() {
+    const lesIdx = document.getElementById("target-lesson-edit").value;
+    const jp = document.getElementById("jp-word").value.trim();
+    const kana = document.getElementById("kana-word").value.trim();
+    const mean = document.getElementById("mean-word").value.trim();
+    const audioPath = document.getElementById("audio-path").value.trim();
+    if (lesIdx === "" || !jp || !kana || !mean || !audioPath) {
+      return alert("请完整填写单词信息与音频路径");
+    }
+    appData.lessons[lesIdx].words.push({
+      jp, kana, mean, audioPath
+    });
+    saveCache();
+    // 清空输入框
+    document.getElementById("jp-word").value = "";
+    document.getElementById("kana-word").value = "";
+    document.getElementById("mean-word").value = "";
+    document.getElementById("audio-path").value = "audio/";
+    renderAllLessonSelect();
+    renderManageWord();
+    alert("单词添加完成！");
+  }
+
+  // 编辑区渲染单词列表（支持删除）
+  function renderManageWord() {
+    const box = document.getElementById("manage-word-box");
+    const selIdx = document.getElementById("manage-lesson").value;
+    box.innerHTML = "";
+    if (selIdx === "") return;
+    const wordList = appData.lessons[selIdx].words;
+    if (wordList.length === 0) {
+      box.innerHTML = "<div class='text-gray-400 text-center py-4'>本课暂无单词</div>";
+      return;
+    }
+    wordList.forEach((word, wIdx) => {
+      const item = document.createElement("div");
+      item.className = "flex justify-between items-center border p-2 rounded";
+      item.innerHTML = `
+        <div class="text-sm">${word.jp}【${word.kana}】${word.mean}</div>
+        <button onclick="deleteWord(${selIdx},${wIdx})" class="text-red-500 text-sm">删除</button>
+      `;
+      box.appendChild(item);
+    })
+  }
+
+  // 删除单词
+  function deleteWord(lesIdx, wordIdx) {
+    if (!confirm("确定删除该单词？")) return;
+    appData.lessons[lesIdx].words.splice(wordIdx, 1);
+    saveCache();
+    renderManageWord();
+  }
+
+  // 导出 word-list.json 文件
+  function exportJsonFile() {
+    const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "word-list.json";
+    a.click();
+    alert("导出成功！将下载的json上传覆盖Gitee仓库原文件即可更新全站单词");
+  }
+
+  // 清空本地浏览器缓存（仅编辑记录，不影响线上）
+  function clearLocalCache() {
+    if (!confirm("确定清空本地所有编辑缓存？不会影响线上仓库文件")) return;
+    appData = { lessons: [] };
+    saveCache();
+    renderAllLessonSelect();
+    renderManageWord();
+    alert("本地缓存已清空");
+  }
+
+  // 学生端渲染单词卡片
+  function renderWordList() {
+    const container = document.getElementById("word-list");
+    const selIdx = document.getElementById("lesson-select").value;
+    container.innerHTML = "";
+    if (selIdx === "" || !window.onlineWordData) return;
+    const words = window.onlineWordData.lessons[selIdx].words;
+    words.forEach(word => {
+      const card = document.createElement("div");
+      card.className = "word-card bg-white p-4 rounded-lg shadow-sm active:bg-blue-50 cursor-pointer";
+      card.innerHTML = `
+        <div class="text-lg font-bold text-slate-900">${word.jp}</div>
+        <div class="text-sm text-sky-600">${word.kana}</div>
+        <div class="text-sm text-slate-500 mt-1">${word.mean}</div>
+      `;
+      card.onclick = () => {
+        audioPlayer.src = word.audioPath;
+        audioPlayer.play();
+      }
+      container.appendChild(card);
+    })
+  }
+
+  // 批量朗读全部单词
+  async function playAllWords() {
+    const selIdx = document.getElementById("lesson-select").value;
+    if (selIdx === "" || !window.onlineWordData) return alert("请等待单词加载完成");
+    const words = window.onlineWordData.lessons[selIdx].words;
+    for (let w of words) {
+      audioPlayer.src = w.audioPath;
+      await audioPlayer.play();
+      await new Promise(resolve => setTimeout(resolve, 1300));
+    }
+  }
+
+  // 页面初始化
+  window.onload = function () {
+    switchTab("study");
+  }
+</script>
+</body>
+</html>
