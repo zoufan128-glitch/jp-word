@@ -1,3 +1,39 @@
 {
-  "lessons": []
+  "lessons": [
+    {
+      "name": "樱花2级别第一课",
+      "words": [
+        {
+          "jp": "来ます",
+          "kana": "きます",
+          "mean": "来",
+          "audioPath": "audio/Les_01.m4a"
+        },
+        {
+          "jp": "します",
+          "kana": "します",
+          "mean": "做、干",
+          "audioPath": "audio/Les_02.m4a"
+        },
+        {
+          "jp": "私たち",
+          "kana": "わたしたち",
+          "mean": "我们",
+          "audioPath": "audio/Les_03.m4a"
+        },
+        {
+          "jp": "あの人",
+          "kana": "あのひと",
+          "mean": "那个人",
+          "audioPath": "audio/Les_04.m4a"
+        },
+        {
+          "jp": "あの方",
+          "kana": "あのかた",
+          "mean": "那一位",
+          "audioPath": "audio/Les_05.m4a"
+        }
+      ]
+    }
+  ]
 }
